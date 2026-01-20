@@ -30,12 +30,13 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { useRouter } from "next/navigation"
 
 export function NavUser() {
   const { isMobile } = useSidebar()
   const { data: session, status } = useSession()
   const user = session?.user
-
+  const router = useRouter()
   if (status === "loading") {
     return (
       <SidebarMenu>
@@ -57,7 +58,7 @@ export function NavUser() {
     return (
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton size="lg" onClick={() => signIn()}>
+          <SidebarMenuButton size="lg" onClick={() => router.push('/register')}>
             <Avatar className="h-8 w-8 rounded-lg">
               <AvatarFallback className="rounded-lg">?</AvatarFallback>
             </Avatar>

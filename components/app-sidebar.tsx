@@ -9,11 +9,13 @@ import {
   Home,
   NotebookPen,
   PlusCircle,
+  Trash2,
   type LucideIcon,
 } from "lucide-react"
 import { useSession } from "next-auth/react"
 
 import { AddMatiereModal } from "@/components/add-matiere-modal"
+import { DeleteMatiereModal } from "@/components/delete-matiere-modal"
 import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
@@ -22,6 +24,7 @@ import {
   SidebarHeader,
   SidebarRail,
   SidebarMenu,
+  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarGroup,
@@ -44,8 +47,8 @@ type UserMatiere = {
 
 const platformItems: SidebarItem[] = [
   { title: "Tableau de bord", url: "/dashboard", icon: Home },
-  { title: "Mes cours", url: "/cours", icon: NotebookPen },
-  { title: "Mes fichiers", url: "/fichiers", icon: Folder },
+  // { title: "Mes cours", url: "/cours", icon: NotebookPen },
+  // { title: "Mes fichiers", url: "/fichiers", icon: Folder },
   { title: "Calendrier", url: "/calendrier", icon: Calendar },
 ]
 
@@ -65,6 +68,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     async (signal?: AbortSignal) => {
       if (!userId) {
         setUserMatieres([])
+        setIsLoadingMatieres(false)
         return
       }
 
@@ -76,6 +80,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         if (!response.ok) return
         const data = (await response.json()) as UserMatiere[]
         if (!signal?.aborted) setUserMatieres(data)
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return
+        throw error
       } finally {
         if (!signal?.aborted) setIsLoadingMatieres(false)
       }
@@ -100,7 +107,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link href="/" className="flex items-center gap-2">
+              <Link href="/dashboard" className="flex items-center gap-2">
                 <GraduationCap className="size-5" />
                 <span className="text-base font-semibold">StudyHub</span>
               </Link>
@@ -145,10 +152,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             )}
             {userMatieres.map((matiere) => (
               <SidebarMenuItem key={matiere.id}>
-                <SidebarMenuButton>
-                  <FolderOpen />
-                  <span>{matiere.name}</span>
+                <SidebarMenuButton asChild>
+                  <Link href={`/matiere/${matiere.id}`}>
+                    <FolderOpen />
+                    <span>{matiere.name}</span>
+                  </Link>
                 </SidebarMenuButton>
+                <DeleteMatiereModal
+                  userId={userId!}
+                  matiereId={matiere.id}
+                  matiereName={matiere.name}
+                  onDeleted={loadMatieres}
+                >
+                  <SidebarMenuAction showOnHover className="cursor-pointer">
+                    <Trash2 className="text-destructive" />
+                    <span className="sr-only">Supprimer la matière</span>
+                  </SidebarMenuAction>
+                </DeleteMatiereModal>
               </SidebarMenuItem>
             ))}
             {subjectItems.map((item) => (

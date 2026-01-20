@@ -17,6 +17,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   matieres      Matiere[]
+  notes         Note[]
 }
 
 model Account {
@@ -58,5 +59,21 @@ model Matiere {
   id String @id @default(cuid())
   name String
   type String
+
   users User[]
+  notes Note[]
+}
+
+model Note {
+  id String @id @default(cuid())
+  userId String
+  matiereId String
+  note Float
+  comment String?
+  coefficient Int @default(1)
+
+  date DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matiere Matiere @relation(fields: [matiereId], references: [id], onDelete: Cascade)
 }

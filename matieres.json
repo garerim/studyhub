@@ -1,0 +1,61 @@
+{
+  "Tronc commun": [
+    "Français",
+    "Mathématiques",
+    "Histoire-Géographie",
+    "Enseignement moral et civique",
+    "Sciences de la vie et de la Terre",
+    "Physique-Chimie",
+    "Technologie",
+    "Éducation physique et sportive"
+  ],
+  "Langues vivantes": [
+    "Anglais",
+    "Espagnol",
+    "Allemand",
+    "Italien",
+    "Portugais",
+    "Arabe",
+    "Chinois",
+    "Russe",
+    "Japonais",
+    "Coréen",
+    "Hindi",
+    "Turc"
+  ],
+  "Langues anciennes": [
+    "Latin",
+    "Grec ancien",
+    "Littérature et langues et cultures de l'Antiquité"
+  ],
+  "Sciences et technologies": [
+    "Numérique et sciences informatiques",
+    "Sciences de l'ingénieur",
+    "Biologie-écologie"
+  ],
+  "Sciences humaines et sociales": [
+    "Sciences économiques et sociales",
+    "Philosophie",
+    "Humanités, littérature et philosophie",
+    "Histoire-Géographie, géopolitique et sciences politiques"
+  ],
+  "Arts et culture": [
+    "Arts plastiques",
+    "Éducation musicale",
+    "Histoire des arts",
+    "Arts (cinéma-audiovisuel, danse, théâtre, musique, arts plastiques)"
+  ],
+  "Approfondissements mathématiques": [
+    "Mathématiques expertes",
+    "Mathématiques complémentaires"
+  ],
+  "Spécialités scientifiques": [
+    "Physique-Chimie (spécialité)",
+    "Sciences de la vie et de la Terre (spécialité)",
+    "Sciences de l'ingénieur (spécialité)"
+  ],
+  "Littérature": [
+    "Littérature",
+    "Langues et cultures étrangères ou régionales"
+  ]
+}

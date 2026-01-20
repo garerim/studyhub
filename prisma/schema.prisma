@@ -16,6 +16,7 @@ model User {
   password      String
   accounts      Account[]
   sessions      Session[]
+  matieres      Matiere[]
 }
 
 model Account {
@@ -51,4 +52,11 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Matiere {
+  id String @id @default(cuid())
+  name String
+  type String
+  users User[]
 }

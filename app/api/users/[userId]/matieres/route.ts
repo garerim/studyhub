@@ -69,7 +69,7 @@ export async function GET(
   request: Request,
   { params }: { params?: { userId?: string } }
 ) {
-  const userIdFromParams = params?.userId
+  const userIdFromParams = (await params)?.userId
   const userIdFromPath = (() => {
     const pathname = new URL(request.url).pathname
     const parts = pathname.split("/").filter(Boolean)

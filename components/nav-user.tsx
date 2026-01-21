@@ -8,7 +8,7 @@ import {
   LogOut,
   Sparkles,
 } from "lucide-react"
-import { signIn, signOut, useSession } from "next-auth/react"
+import { signOut, useSession } from "next-auth/react"
 
 import {
   Avatar,
@@ -75,7 +75,7 @@ export function NavUser() {
   }
 
   const initials =
-    user.name?.split(" ").map((part) => part[0]).join("") ??
+    user.firstName?.split(" ").map((part) => part[0]).join("") ??
     user.email?.[0] ??
     "U"
 
@@ -89,14 +89,14 @@ export function NavUser() {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.image ?? ""} alt={user.name ?? "User"} />
+                <AvatarImage src={user.image ?? ""} alt={user.username ?? user.firstName ?? "User"} />
                 <AvatarFallback className="rounded-lg">
                   {initials.toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">
-                  {user.name ?? "Utilisateur"}
+                  {user.firstName ?? user.username ?? "Utilisateur"}
                 </span>
                 <span className="truncate text-xs">
                   {user.email ?? "email@exemple.com"}
@@ -116,7 +116,7 @@ export function NavUser() {
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage
                     src={user.image ?? ""}
-                    alt={user.name ?? "User"}
+                    alt={user.username ?? user.firstName ?? "User"}
                   />
                   <AvatarFallback className="rounded-lg">
                     {initials.toUpperCase()}
@@ -124,7 +124,7 @@ export function NavUser() {
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">
-                    {user.name ?? "Utilisateur"}
+                    {user.firstName ?? user.username ?? "Utilisateur"}
                   </span>
                   <span className="truncate text-xs">
                     {user.email ?? "email@exemple.com"}

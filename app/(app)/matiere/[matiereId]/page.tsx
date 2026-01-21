@@ -9,7 +9,9 @@ import { DeleteNoteModal } from "@/components/delete-note-modal"
 import { EditNoteModal } from "@/components/edit-note-modal"
 import { AddFileModal } from "@/components/add-file-modal"
 import { DeleteFileModal } from "@/components/delete-file-modal"
+import { EditFileModal } from "@/components/edit-file-modal"
 import { Button } from "@/components/ui/button"
+import { Pencil } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Table,
@@ -302,14 +304,31 @@ export default function MatierePage() {
               {files.map((file) => (
                 <TableRow key={file.id}>
                   <TableCell>
-                    <a
-                      href={file.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline"
-                    >
-                      {file.name}
-                    </a>
+                    <div className="group flex items-center gap-2">
+                      <a
+                        href={file.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        {file.name}
+                      </a>
+                      <EditFileModal
+                        userId={userId ?? ""}
+                        matiereId={resolvedMatiereId ?? ""}
+                        file={{ id: file.id, name: file.name }}
+                        onUpdated={() => loadFiles()}
+                      >
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 w-6 p-0 opacity-0 transition-opacity group-hover:opacity-100"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                      </EditFileModal>
+                    </div>
                   </TableCell>
                   <TableCell>
                     {(file.size / 1024).toFixed(2)} KB

@@ -72,7 +72,7 @@ export function DeleteMatiereModal({
             Supprimer la matière{matiereName ? ` "${matiereName}"` : ""} ?
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Cette action supprimera toutes vos notes associées à cette matière.
+            Cette action supprimera toutes vos notes et fichiers associés à cette matière.
           </AlertDialogDescription>
         </AlertDialogHeader>
         {error ? <p className="text-destructive text-sm">{error}</p> : null}

@@ -30,6 +30,7 @@ export async function DELETE(
   try {
     await prisma.$transaction([
       prisma.note.deleteMany({ where: { userId, matiereId } }),
+      prisma.file.deleteMany({ where: { userId, matiereId } }),
       prisma.user.update({
         where: { id: userId },
         data: {

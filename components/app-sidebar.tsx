@@ -108,8 +108,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <Link href="/dashboard" className="flex items-center gap-2">
-                <GraduationCap className="size-5" />
-                <span className="text-base font-semibold">StudyHub</span>
+                <GraduationCap className="size-7 text-primary" />
+                <span className="text-primary font-semibold">StudyHub</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

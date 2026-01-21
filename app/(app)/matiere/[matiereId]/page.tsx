@@ -169,6 +169,24 @@ export default function MatierePage() {
     return () => controller.abort()
   }, [loadFiles, resolvedMatiereId, userId])
 
+  // Calcul de la moyenne générale (moyenne pondérée par coefficient)
+  const moyenneGenerale = React.useMemo(() => {
+    if (notes.length === 0) return null
+
+    const sommeNotesPonderees = notes.reduce(
+      (acc, note) => acc + note.note * note.coefficient,
+      0
+    )
+    const sommeCoefficients = notes.reduce(
+      (acc, note) => acc + note.coefficient,
+      0
+    )
+
+    if (sommeCoefficients === 0) return null
+
+    return sommeNotesPonderees / sommeCoefficients
+  }, [notes])
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -209,6 +227,13 @@ export default function MatierePage() {
           )}
         </div>
         <TabsContent value="notes">
+          {moyenneGenerale !== null && (
+            <div className="mb-4">
+              <p className="text-lg font-medium">
+                Moyenne générale: {moyenneGenerale.toFixed(2)}/20
+              </p>
+            </div>
+          )}
           <Table>
             <TableCaption>
               {isLoading

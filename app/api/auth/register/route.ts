@@ -7,7 +7,10 @@ import { prisma } from "@/lib/prisma";
 const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
-  name: z.string().min(1).optional(),
+  firstName: z.string().min(1).optional(),
+  lastName: z.string().min(1).optional(),
+  gender: z.enum(["male", "female", "other", "prefer-not-to-say"]).optional(),
+  birthDate: z.string().optional(),
 });
 
 export async function POST(request: Request) {
@@ -34,16 +37,26 @@ export async function POST(request: Request) {
 
   const passwordHash = await hash(parsed.data.password, 12);
 
+  // Convertir la date de naissance en DateTime si fournie
+  const birthDate = parsed.data.birthDate
+    ? new Date(parsed.data.birthDate)
+    : null;
+
   const user = await prisma.user.create({
     data: {
       email: parsed.data.email,
-      name: parsed.data.name,
+      username: null,
+      firstName: parsed.data.firstName || null,
+      lastName: parsed.data.lastName || null,
+      gender: parsed.data.gender || null,
+      birthDate: birthDate,
       password: passwordHash,
     },
     select: {
       id: true,
       email: true,
-      name: true,
+      firstName: true,
+      lastName: true,
     },
   });
 

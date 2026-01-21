@@ -8,6 +8,9 @@ import {
   NotebookPen,
   GraduationCap,
   Sparkles,
+  Brain,
+  Target,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,7 +36,9 @@ export default function Home() {
             </h1>
             <p className="mb-8 text-lg text-muted-foreground sm:text-xl">
               StudyHub vous aide à gérer vos notes, organiser vos matières et
-              suivre votre progression. Tout ce dont vous avez besoin pour
+              suivre votre progression. Avec notre IA avancée, transformez vos
+              notes en cours claires, obtenez des conseils personnalisés et
+              générez des quizz adaptés. Tout ce dont vous avez besoin pour
               réussir vos études en un seul endroit.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
@@ -92,6 +97,45 @@ export default function Home() {
               <Card>
                 <CardHeader>
                   <div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-primary/10">
+                    <Brain className="size-6 text-primary" />
+                  </div>
+                  <CardTitle>IA de rédaction de notes</CardTitle>
+                  <CardDescription>
+                    Notre IA transforme vos notes en cours claires et
+                    pédagogiques. Obtenez des résumés structurés et faciles à
+                    comprendre pour optimiser votre apprentissage.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-primary/10">
+                    <Target className="size-6 text-primary" />
+                  </div>
+                  <CardTitle>Analyse IA des performances</CardTitle>
+                  <CardDescription>
+                    L&apos;IA analyse vos points forts et vos points faibles,
+                    puis vous conseille précisément sur les domaines à
+                    améliorer pour progresser efficacement.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-primary/10">
+                    <Zap className="size-6 text-primary" />
+                  </div>
+                  <CardTitle>Génération de quizz</CardTitle>
+                  <CardDescription>
+                    Générez automatiquement des quizz personnalisés selon vos
+                    cours et vos attentes. Testez vos connaissances et
+                    identifiez rapidement vos lacunes.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-primary/10">
                     <LayoutDashboard className="size-6 text-primary" />
                   </div>
                   <CardTitle>Tableau de bord</CardTitle>
@@ -121,7 +165,8 @@ export default function Home() {
                   <CardTitle>Suivi de progression</CardTitle>
                   <CardDescription>
                     Visualisez votre progression dans chaque matière et
-                    identifiez les domaines à améliorer.
+                    identifiez les domaines à améliorer grâce à des statistiques
+                    détaillées.
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -182,6 +227,12 @@ export default function Home() {
                       <Check className="size-5 text-primary" />
                       <span className="text-sm">Support communautaire</span>
                     </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="size-5 text-muted-foreground opacity-50" />
+                      <span className="text-sm text-muted-foreground line-through">
+                        Fonctionnalités IA
+                      </span>
+                    </li>
                   </ul>
                   <Button className="mt-6 w-full" variant="outline" asChild>
                     <Link href="/register">Commencer</Link>
@@ -218,6 +269,18 @@ export default function Home() {
                     </li>
                     <li className="flex items-center gap-2">
                       <Check className="size-5 text-primary" />
+                      <span className="text-sm">IA de rédaction de notes</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="size-5 text-primary" />
+                      <span className="text-sm">Analyse IA des performances</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="size-5 text-primary" />
+                      <span className="text-sm">Génération de quizz (limité)</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="size-5 text-primary" />
                       <span className="text-sm">Support prioritaire</span>
                     </li>
                     <li className="flex items-center gap-2">
@@ -249,11 +312,19 @@ export default function Home() {
                     </li>
                     <li className="flex items-center gap-2">
                       <Check className="size-5 text-primary" />
-                      <span className="text-sm">Collaboration en équipe</span>
+                      <span className="text-sm">IA de rédaction de notes (illimité)</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <Check className="size-5 text-primary" />
-                      <span className="text-sm">API d&apos;intégration</span>
+                      <span className="text-sm">Analyse IA avancée des performances</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="size-5 text-primary" />
+                      <span className="text-sm">Génération de quizz illimitée</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="size-5 text-primary" />
+                      <span className="text-sm">Collaboration en équipe</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <Check className="size-5 text-primary" />

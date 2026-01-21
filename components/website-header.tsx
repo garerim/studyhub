@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { ToggleTheme } from "@/components/toggle-theme";
 
 export function WebsiteHeader() {
   const pathname = usePathname();
@@ -110,6 +111,7 @@ export function WebsiteHeader() {
           </NavigationMenu>
         </div>
         <div className="flex items-center gap-4">
+          <ToggleTheme />
           <Button variant="ghost" asChild>
             <Link href="/login">Connexion</Link>
           </Button>

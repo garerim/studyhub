@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { BookOpen, FileText, LayoutDashboard, Users } from "lucide-react";
 
 export function WebsiteFooter() {
   return (
@@ -9,7 +8,7 @@ export function WebsiteFooter() {
           <div className="space-y-4">
             <h3 className="text-lg font-bold">StudyHub</h3>
             <p className="text-sm text-muted-foreground">
-              La plateforme qui aide les étudiants à apprendre et à s'organiser
+              La plateforme qui aide les étudiants à apprendre et à s&apos;organiser
               avec leurs notes et leurs matières.
             </p>
           </div>
@@ -37,7 +36,7 @@ export function WebsiteFooter() {
                   href="/register"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  S'inscrire
+                  S&apos;inscrire
                 </Link>
               </li>
             </ul>
@@ -64,23 +63,31 @@ export function WebsiteFooter() {
             </ul>
           </div>
           <div className="space-y-4">
-            <h4 className="text-sm font-semibold">Fonctionnalités</h4>
+            <h4 className="text-sm font-semibold">Légal</h4>
             <ul className="space-y-2 text-sm">
-              <li className="flex items-center gap-2 text-muted-foreground">
-                <FileText className="size-4" />
-                Gestion de notes
+              <li>
+                <Link
+                  href="/mentions-legales"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Mentions légales
+                </Link>
               </li>
-              <li className="flex items-center gap-2 text-muted-foreground">
-                <BookOpen className="size-4" />
-                Matières personnalisées
+              <li>
+                <Link
+                  href="/conditions-utilisation"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Conditions d&apos;utilisation
+                </Link>
               </li>
-              <li className="flex items-center gap-2 text-muted-foreground">
-                <LayoutDashboard className="size-4" />
-                Tableau de bord
-              </li>
-              <li className="flex items-center gap-2 text-muted-foreground">
-                <Users className="size-4" />
-                Organisation
+              <li>
+                <Link
+                  href="/politique-confidentialite"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Politique de confidentialité
+                </Link>
               </li>
             </ul>
           </div>

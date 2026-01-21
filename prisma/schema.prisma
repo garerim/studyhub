@@ -21,6 +21,8 @@ model User {
   accounts      Account[]
   sessions      Session[]
   matieres      Matiere[]
+  notes         Note[]
+  files         File[]
 }
 
 model Account {
@@ -62,5 +64,38 @@ model Matiere {
   id String @id @default(cuid())
   name String
   type String
+
   users User[]
+  notes Note[]
+  files File[]
+}
+
+model Note {
+  id String @id @default(cuid())
+  userId String
+  matiereId String
+  note Float
+  comment String?
+  coefficient Int @default(1)
+
+  date DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matiere Matiere @relation(fields: [matiereId], references: [id], onDelete: Cascade)
+}
+
+model File {
+  id        String   @id @default(cuid())
+  userId    String
+  matiereId String
+  name      String
+  url       String
+  size      Int
+  mimeType  String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matiere Matiere @relation(fields: [matiereId], references: [id], onDelete: Cascade)
+
+  @@index([userId, matiereId])
 }

@@ -1,12 +1,18 @@
+import { getAuthUser } from "@/auth";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { redirect } from "next/navigation";
 
-export default function AppLayout({
+export default async function AppLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getAuthUser();
+  if (!user) {
+    redirect("/login");
+  }
   return (
     <SidebarProvider
       style={

@@ -18,6 +18,7 @@ model User {
   sessions      Session[]
   matieres      Matiere[]
   notes         Note[]
+  files         File[]
 }
 
 model Account {
@@ -62,6 +63,7 @@ model Matiere {
 
   users User[]
   notes Note[]
+  files File[]
 }
 
 model Note {
@@ -76,4 +78,20 @@ model Note {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   matiere Matiere @relation(fields: [matiereId], references: [id], onDelete: Cascade)
+}
+
+model File {
+  id        String   @id @default(cuid())
+  userId    String
+  matiereId String
+  name      String
+  url       String
+  size      Int
+  mimeType  String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matiere Matiere @relation(fields: [matiereId], references: [id], onDelete: Cascade)
+
+  @@index([userId, matiereId])
 }

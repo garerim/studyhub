@@ -7,6 +7,8 @@ import { useSession } from "next-auth/react"
 import { AddNoteModal } from "@/components/add-note-modal"
 import { DeleteNoteModal } from "@/components/delete-note-modal"
 import { EditNoteModal } from "@/components/edit-note-modal"
+import { AddFileModal } from "@/components/add-file-modal"
+import { DeleteFileModal } from "@/components/delete-file-modal"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -27,6 +29,15 @@ type Note = {
   date: string
 }
 
+type File = {
+  id: string
+  name: string
+  url: string
+  size: number
+  mimeType: string
+  createdAt: string
+}
+
 export default function MatierePage() {
   const { matiereId } = useParams()
   const { data: session } = useSession()
@@ -36,6 +47,9 @@ export default function MatierePage() {
   const [notes, setNotes] = React.useState<Note[]>([])
   const [isLoading, setIsLoading] = React.useState(false)
   const [hasError, setHasError] = React.useState(false)
+  const [files, setFiles] = React.useState<File[]>([])
+  const [isLoadingFiles, setIsLoadingFiles] = React.useState(false)
+  const [hasErrorFiles, setHasErrorFiles] = React.useState(false)
   const [matiereName, setMatiereName] = React.useState("")
   const [activeTab, setActiveTab] = React.useState("notes")
 
@@ -111,6 +125,48 @@ export default function MatierePage() {
     return () => controller.abort()
   }, [resolvedMatiereId])
 
+  const loadFiles = React.useCallback(
+    async (signal?: AbortSignal) => {
+      if (!userId || !resolvedMatiereId) {
+        setFiles([])
+        return
+      }
+
+      setIsLoadingFiles(true)
+      setHasErrorFiles(false)
+      try {
+        const response = await fetch(
+          `/api/users/${userId}/matieres/${resolvedMatiereId}/files`,
+          { signal }
+        )
+        if (!response.ok) {
+          setHasErrorFiles(true)
+          setFiles([])
+          return
+        }
+        const data = (await response.json()) as File[]
+        if (!signal?.aborted) setFiles(data)
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return
+        setHasErrorFiles(true)
+      } finally {
+        if (!signal?.aborted) setIsLoadingFiles(false)
+      }
+    },
+    [resolvedMatiereId, userId]
+  )
+
+  React.useEffect(() => {
+    if (!userId || !resolvedMatiereId) {
+      setFiles([])
+      return
+    }
+
+    const controller = new AbortController()
+    loadFiles(controller.signal)
+    return () => controller.abort()
+  }, [loadFiles, resolvedMatiereId, userId])
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -136,8 +192,16 @@ export default function MatierePage() {
                 Ajouter une note
               </Button>
             )
+          ) : userId && resolvedMatiereId ? (
+            <AddFileModal
+              userId={userId}
+              matiereId={resolvedMatiereId}
+              onAdded={() => loadFiles()}
+            >
+              <Button type="button">Ajouter un fichier</Button>
+            </AddFileModal>
           ) : (
-            <Button type="button">
+            <Button type="button" disabled>
               Ajouter un fichier
             </Button>
           )}
@@ -213,9 +277,85 @@ export default function MatierePage() {
           </Table>
         </TabsContent>
         <TabsContent value="fichiers">
-          <div className="rounded-lg border border-dashed p-6 text-sm text-muted-foreground">
-            Aucun fichier pour cette matière.
-          </div>
+          <Table>
+            <TableCaption>
+              {isLoadingFiles
+                ? "Chargement des fichiers..."
+                : hasErrorFiles
+                  ? "Impossible de charger les fichiers."
+                  : files.length === 0
+                    ? "Aucun fichier pour cette matière."
+                    : "Liste des fichiers de cette matière."}
+            </TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nom</TableHead>
+                <TableHead>Taille</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Date d'ajout</TableHead>
+                <TableHead className="w-[1%] whitespace-nowrap">
+                  Actions
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {files.map((file) => (
+                <TableRow key={file.id}>
+                  <TableCell>
+                    <a
+                      href={file.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline"
+                    >
+                      {file.name}
+                    </a>
+                  </TableCell>
+                  <TableCell>
+                    {(file.size / 1024).toFixed(2)} KB
+                  </TableCell>
+                  <TableCell>{file.mimeType}</TableCell>
+                  <TableCell>
+                    {new Date(file.createdAt).toLocaleDateString("fr-FR")}
+                  </TableCell>
+                  <TableCell className="w-[1%] whitespace-nowrap">
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={file.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="px-2 text-xs"
+                        >
+                          Ouvrir
+                        </Button>
+                      </a>
+                      <DeleteFileModal
+                        userId={userId ?? ""}
+                        matiereId={resolvedMatiereId ?? ""}
+                        fileId={file.id}
+                        fileName={file.name}
+                        onDeleted={() => loadFiles()}
+                      >
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="destructive"
+                          className="px-2 text-xs"
+                        >
+                          Supprimer
+                        </Button>
+                      </DeleteFileModal>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </TabsContent>
       </Tabs>
     </div>

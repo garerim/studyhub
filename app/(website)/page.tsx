@@ -38,7 +38,7 @@ export default function Home() {
               StudyHub vous aide à gérer vos notes, organiser vos matières et
               suivre votre progression. Avec notre IA avancée, transformez vos
               notes en cours claires, obtenez des conseils personnalisés et
-              générez des quizz adaptés. Tout ce dont vous avez besoin pour
+              générez des quiz adaptés. Tout ce dont vous avez besoin pour
               réussir vos études en un seul endroit.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
@@ -125,9 +125,9 @@ export default function Home() {
                   <div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-primary/10">
                     <Zap className="size-6 text-primary" />
                   </div>
-                  <CardTitle>Génération de quizz</CardTitle>
+                  <CardTitle>Génération de quiz</CardTitle>
                   <CardDescription>
-                    Générez automatiquement des quizz personnalisés selon vos
+                    Générez automatiquement des quiz personnalisés selon vos
                     cours et vos attentes. Testez vos connaissances et
                     identifiez rapidement vos lacunes.
                   </CardDescription>
@@ -277,7 +277,7 @@ export default function Home() {
                     </li>
                     <li className="flex items-center gap-2">
                       <Check className="size-5 text-primary" />
-                      <span className="text-sm">Génération de quizz (limité)</span>
+                      <span className="text-sm">Génération de quiz (limité)</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <Check className="size-5 text-primary" />
@@ -320,7 +320,7 @@ export default function Home() {
                     </li>
                     <li className="flex items-center gap-2">
                       <Check className="size-5 text-primary" />
-                      <span className="text-sm">Génération de quizz illimitée</span>
+                      <span className="text-sm">Génération de quiz illimitée</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <Check className="size-5 text-primary" />

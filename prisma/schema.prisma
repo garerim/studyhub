@@ -23,6 +23,8 @@ model User {
   matieres      Matiere[]
   notes         Note[]
   files         File[]
+  quizes       Quiz[]
+  quizAttempts  QuizAttempt[]
   cours         Cours[]
 }
 
@@ -69,6 +71,7 @@ model Matiere {
   users User[]
   notes Note[]
   files File[]
+  quizes Quiz[]
   cours Cours[]
 }
 
@@ -103,6 +106,63 @@ model File {
   @@index([userId, matiereId])
 }
 
+model Quiz {
+  id          String   @id @default(cuid())
+  userId      String
+  matiereId   String
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isAIGenerated Boolean @default(false)
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matiere     Matiere      @relation(fields: [matiereId], references: [id], onDelete: Cascade)
+  questions   Question[]
+  attempts    QuizAttempt[]
+
+  @@index([userId, matiereId])
+}
+
+model Question {
+  id          String   @id @default(cuid())
+  quizId      String
+  question    String
+  type        String   @default("multiple-choice") // multiple-choice, true-false, short-answer
+  order       Int
+  points      Int      @default(1)
+
+  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  answers     Answer[]
+
+  @@index([quizId])
+}
+
+model Answer {
+  id          String   @id @default(cuid())
+  questionId  String
+  text        String
+  isCorrect   Boolean  @default(false)
+  order       Int
+
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+}
+
+model QuizAttempt {
+  id          String   @id @default(cuid())
+  quizId      String
+  userId      String
+  score       Float
+  totalPoints Int
+  answers     String   // JSON string of user answers
+  completedAt DateTime @default(now())
+
+  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([quizId, userId])
 model Cours {
   id String @id @default(cuid())
   userId String

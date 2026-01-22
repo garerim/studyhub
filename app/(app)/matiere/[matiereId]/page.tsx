@@ -60,10 +60,7 @@ export default function MatierePage() {
   const { notes, isLoading, hasError, reload: reloadNotes } = useNotes(userId, resolvedMatiereId)
   const { files, isLoading: isLoadingFiles, hasError: hasErrorFiles, reload: reloadFiles } = useFiles(userId, resolvedMatiereId)
   const { quizzes, isLoading: isLoadingQuizzes, hasError: hasErrorQuizzes, reload: reloadQuizzes } = useQuizzes(userId, resolvedMatiereId)
-
-  if (!userId || !resolvedMatiereId) {
-    return null
-  }
+  const canRender = Boolean(userId && resolvedMatiereId)
 
   const loadCours = React.useCallback(
     async (signal?: AbortSignal) => {
@@ -130,6 +127,10 @@ export default function MatierePage() {
     if (!query) return cours
     return cours.filter((item) => item.name.toLowerCase().includes(query))
   }, [cours, coursSearch])
+
+  if (!canRender) {
+    return null
+  }
 
   return (
     <div className="space-y-4">

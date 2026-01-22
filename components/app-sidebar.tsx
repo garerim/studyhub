@@ -13,6 +13,7 @@ import {
   type LucideIcon,
 } from "lucide-react"
 import { useSession } from "next-auth/react"
+import { usePathname } from "next/navigation"
 
 import { AddMatiereModal } from "@/components/modals/add-matiere-modal"
 import { DeleteMatiereModal } from "@/components/modals/delete-matiere-modal"
@@ -60,6 +61,7 @@ const subjectItems: SidebarItem[] = [
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: session } = useSession()
+  const pathname = usePathname()
   const userId = session?.user?.id
   const [userMatieres, setUserMatieres] = React.useState<UserMatiere[]>([])
   const [isLoadingMatieres, setIsLoadingMatieres] = React.useState(false)
@@ -150,9 +152,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )}
-            {userMatieres.map((matiere) => (
+            {userMatieres.map((matiere) => {
+              const matierePath = `/matiere/${matiere.id}`
+              const isActiveMatiere =
+                pathname === matierePath || pathname.startsWith(`${matierePath}/`)
+
+              return (
               <SidebarMenuItem key={matiere.id}>
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton asChild isActive={isActiveMatiere}>
                   <Link href={`/matiere/${matiere.id}`}>
                     <FolderOpen />
                     <span>{matiere.name}</span>
@@ -170,7 +177,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   </SidebarMenuAction>
                 </DeleteMatiereModal>
               </SidebarMenuItem>
-            ))}
+              )
+            })}
             {subjectItems.map((item) => (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton

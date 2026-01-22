@@ -10,8 +10,12 @@ import { EditNoteModal } from "@/components/edit-note-modal"
 import { AddFileModal } from "@/components/add-file-modal"
 import { DeleteFileModal } from "@/components/delete-file-modal"
 import { EditFileModal } from "@/components/edit-file-modal"
+import { AddCoursModal } from "@/components/add-cours-modal"
+import { DeleteCoursModal } from "@/components/delete-cours-modal"
+import { EditCoursModal } from "@/components/edit-cours-modal"
 import { Button } from "@/components/ui/button"
-import { Pencil } from "lucide-react"
+import { Pencil, BookOpen } from "lucide-react"
+import Link from "next/link"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Table,
@@ -40,6 +44,27 @@ type File = {
   createdAt: string
 }
 
+type Cours = {
+  id: string
+  name: string
+  description: string | null
+  imageUrl: string | null
+  originalText: string | null
+  processedText: string | null
+  content: string | null
+  createdAt: string
+  updatedAt: string
+  documents: Array<{
+    file: {
+      id: string
+      name: string
+      url: string
+      size: number
+      mimeType: string
+    }
+  }>
+}
+
 export default function MatierePage() {
   const { matiereId } = useParams()
   const { data: session } = useSession()
@@ -52,6 +77,9 @@ export default function MatierePage() {
   const [files, setFiles] = React.useState<File[]>([])
   const [isLoadingFiles, setIsLoadingFiles] = React.useState(false)
   const [hasErrorFiles, setHasErrorFiles] = React.useState(false)
+  const [cours, setCours] = React.useState<Cours[]>([])
+  const [isLoadingCours, setIsLoadingCours] = React.useState(false)
+  const [hasErrorCours, setHasErrorCours] = React.useState(false)
   const [matiereName, setMatiereName] = React.useState("")
   const [activeTab, setActiveTab] = React.useState("notes")
 
@@ -169,6 +197,48 @@ export default function MatierePage() {
     return () => controller.abort()
   }, [loadFiles, resolvedMatiereId, userId])
 
+  const loadCours = React.useCallback(
+    async (signal?: AbortSignal) => {
+      if (!userId || !resolvedMatiereId) {
+        setCours([])
+        return
+      }
+
+      setIsLoadingCours(true)
+      setHasErrorCours(false)
+      try {
+        const response = await fetch(
+          `/api/users/${userId}/matieres/${resolvedMatiereId}/cours`,
+          { signal }
+        )
+        if (!response.ok) {
+          setHasErrorCours(true)
+          setCours([])
+          return
+        }
+        const data = (await response.json()) as Cours[]
+        if (!signal?.aborted) setCours(data)
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return
+        setHasErrorCours(true)
+      } finally {
+        if (!signal?.aborted) setIsLoadingCours(false)
+      }
+    },
+    [resolvedMatiereId, userId]
+  )
+
+  React.useEffect(() => {
+    if (!userId || !resolvedMatiereId) {
+      setCours([])
+      return
+    }
+
+    const controller = new AbortController()
+    loadCours(controller.signal)
+    return () => controller.abort()
+  }, [loadCours, resolvedMatiereId, userId])
+
   // Calcul de la moyenne générale (moyenne pondérée par coefficient)
   const moyenneGenerale = React.useMemo(() => {
     if (notes.length === 0) return null
@@ -197,6 +267,8 @@ export default function MatierePage() {
           <TabsList>
             <TabsTrigger value="notes">Notes</TabsTrigger>
             <TabsTrigger value="fichiers">Fichiers</TabsTrigger>
+            <TabsTrigger value="cours">Cours</TabsTrigger>
+            <TabsTrigger value="exercices">Exercices</TabsTrigger>
           </TabsList>
           {activeTab === "notes" ? (
             userId && resolvedMatiereId ? (
@@ -210,6 +282,20 @@ export default function MatierePage() {
             ) : (
               <Button type="button" disabled>
                 Ajouter une note
+              </Button>
+            )
+          ) : activeTab === "cours" ? (
+            userId && resolvedMatiereId ? (
+              <AddCoursModal
+                userId={userId}
+                matiereId={resolvedMatiereId}
+                onAdded={() => loadCours()}
+              >
+                <Button type="button">Ajouter un cours</Button>
+              </AddCoursModal>
+            ) : (
+              <Button type="button" disabled>
+                Ajouter un cours
               </Button>
             )
           ) : userId && resolvedMatiereId ? (
@@ -400,6 +486,139 @@ export default function MatierePage() {
               ))}
             </TableBody>
           </Table>
+        </TabsContent>
+        <TabsContent value="cours">
+          <div className="space-y-4">
+            {isLoadingCours ? (
+              <p className="text-muted-foreground">Chargement des cours...</p>
+            ) : hasErrorCours ? (
+              <p className="text-destructive">
+                Impossible de charger les cours.
+              </p>
+            ) : cours.length === 0 ? (
+              <p className="text-muted-foreground">
+                Aucun cours pour cette matière.
+              </p>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {cours.map((c) => (
+                  <div
+                    key={c.id}
+                    className="border rounded-lg p-4 space-y-3 hover:shadow-md transition-shadow"
+                  >
+                    {c.imageUrl && (
+                      <div className="relative w-full h-48 border rounded-md overflow-hidden">
+                        <img
+                          src={c.imageUrl}
+                          alt={c.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      <h3 className="font-semibold text-lg">{c.name}</h3>
+                      {c.description && (
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {c.description}
+                        </p>
+                      )}
+                      {(c.content || c.processedText) && (
+                        <div className="space-y-1">
+                          <p className="text-xs font-medium text-muted-foreground">
+                            Cours structuré:
+                          </p>
+                          <div className="text-sm bg-muted p-2 rounded max-h-32 overflow-y-auto">
+                            {c.content ? (
+                              <div
+                                className="prose prose-sm max-w-none line-clamp-4"
+                                dangerouslySetInnerHTML={{
+                                  __html: c.content.substring(0, 500) + (c.content.length > 500 ? "..." : ""),
+                                }}
+                              />
+                            ) : (
+                              <p className="line-clamp-4 whitespace-pre-wrap">
+                                {c.processedText}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      {c.documents && c.documents.length > 0 && (
+                        <div className="space-y-1">
+                          <p className="text-xs font-medium text-muted-foreground">
+                            Documents ({c.documents.length}):
+                          </p>
+                          <div className="flex flex-wrap gap-1">
+                            {c.documents.map((doc, idx) => (
+                              <a
+                                key={doc.file.id}
+                                href={doc.file.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-primary hover:underline"
+                              >
+                                {doc.file.name}
+                                {idx < c.documents.length - 1 && ", "}
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between pt-2">
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(c.createdAt).toLocaleDateString("fr-FR")}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <Link
+                            href={`/matiere/${resolvedMatiereId}/cours/${c.id}`}
+                          >
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              className="px-2 text-xs"
+                            >
+                              <BookOpen className="h-3 w-3 mr-1" />
+                              Lire
+                            </Button>
+                          </Link>
+                          <Link
+                            href={`/matiere/${resolvedMatiereId}/cours/${c.id}/edit`}
+                          >
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="default"
+                              className="px-2 text-xs"
+                            >
+                              <Pencil className="h-3 w-3 mr-1" />
+                              Éditer
+                            </Button>
+                          </Link>
+                          <DeleteCoursModal
+                            userId={userId ?? ""}
+                            matiereId={resolvedMatiereId ?? ""}
+                            coursId={c.id}
+                            coursName={c.name}
+                            onDeleted={() => loadCours()}
+                          >
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="destructive"
+                              className="px-2 text-xs"
+                            >
+                              Supprimer
+                            </Button>
+                          </DeleteCoursModal>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </TabsContent>
       </Tabs>
     </div>

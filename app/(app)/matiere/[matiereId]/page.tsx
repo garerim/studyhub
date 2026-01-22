@@ -13,6 +13,7 @@ import { EditFileModal } from "@/components/modals/edit-file-modal"
 import { AddCoursModal } from "@/components/modals/add-cours-modal"
 import { CoursBox } from "@/components/cours-box"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Pencil } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -80,6 +81,7 @@ export default function MatierePage() {
   const [hasErrorCours, setHasErrorCours] = React.useState(false)
   const [matiereName, setMatiereName] = React.useState("")
   const [activeTab, setActiveTab] = React.useState("notes")
+  const [coursSearch, setCoursSearch] = React.useState("")
 
   const loadNotes = React.useCallback(
     async (signal?: AbortSignal) => {
@@ -254,6 +256,12 @@ export default function MatierePage() {
 
     return sommeNotesPonderees / sommeCoefficients
   }, [notes])
+
+  const filteredCours = React.useMemo(() => {
+    const query = coursSearch.trim().toLowerCase()
+    if (!query) return cours
+    return cours.filter((item) => item.name.toLowerCase().includes(query))
+  }, [cours, coursSearch])
 
   return (
     <div className="space-y-4">
@@ -487,19 +495,29 @@ export default function MatierePage() {
         </TabsContent>
         <TabsContent value="cours">
           <div className="space-y-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <Input
+                value={coursSearch}
+                onChange={(event) => setCoursSearch(event.target.value)}
+                placeholder="Rechercher un cours"
+                className="sm:max-w-xs"
+              />
+            </div>
             {isLoadingCours ? (
               <p className="text-muted-foreground">Chargement des cours...</p>
             ) : hasErrorCours ? (
               <p className="text-destructive">
                 Impossible de charger les cours.
               </p>
-            ) : cours.length === 0 ? (
+            ) : filteredCours.length === 0 ? (
               <p className="text-muted-foreground">
-                Aucun cours pour cette matière.
+                {cours.length === 0
+                  ? "Aucun cours pour cette matière."
+                  : "Aucun cours ne correspond à votre recherche."}
               </p>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {cours.map((c) => (
+                {filteredCours.map((c) => (
                   <CoursBox
                     key={c.id}
                     cours={c}

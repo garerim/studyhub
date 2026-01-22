@@ -1,15 +1,15 @@
 import * as React from "react"
-import type { File } from "../types"
+import type { Quiz } from "@/types/matiere"
 
-export function useFiles(userId: string | undefined, matiereId: string | undefined) {
-  const [files, setFiles] = React.useState<File[]>([])
+export function useQuizzes(userId: string | undefined, matiereId: string | undefined) {
+  const [quizzes, setQuizzes] = React.useState<Quiz[]>([])
   const [isLoading, setIsLoading] = React.useState(false)
   const [hasError, setHasError] = React.useState(false)
 
-  const loadFiles = React.useCallback(
+  const loadQuizzes = React.useCallback(
     async (signal?: AbortSignal) => {
       if (!userId || !matiereId) {
-        setFiles([])
+        setQuizzes([])
         return
       }
 
@@ -17,16 +17,16 @@ export function useFiles(userId: string | undefined, matiereId: string | undefin
       setHasError(false)
       try {
         const response = await fetch(
-          `/api/users/${userId}/matieres/${matiereId}/files`,
+          `/api/users/${userId}/matieres/${matiereId}/quizes`,
           { signal }
         )
         if (!response.ok) {
           setHasError(true)
-          setFiles([])
+          setQuizzes([])
           return
         }
-        const data = (await response.json()) as File[]
-        if (!signal?.aborted) setFiles(data)
+        const data = (await response.json()) as Quiz[]
+        if (!signal?.aborted) setQuizzes(data)
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") return
         setHasError(true)
@@ -39,14 +39,14 @@ export function useFiles(userId: string | undefined, matiereId: string | undefin
 
   React.useEffect(() => {
     if (!userId || !matiereId) {
-      setFiles([])
+      setQuizzes([])
       return
     }
 
     const controller = new AbortController()
-    loadFiles(controller.signal)
+    loadQuizzes(controller.signal)
     return () => controller.abort()
-  }, [loadFiles, matiereId, userId])
+  }, [loadQuizzes, matiereId, userId])
 
-  return { files, isLoading, hasError, reload: loadFiles }
+  return { quizzes, isLoading, hasError, reload: loadQuizzes }
 }

@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { EditQuizModal } from "@/components/edit-quiz-modal"
 import { DeleteQuizModal } from "@/components/delete-quiz-modal"
 import { Play, Sparkles, Trophy } from "lucide-react"
-import type { Quiz } from "../types"
+import type { Quiz } from "@/types/matiere"
 
 type QuizzesTabProps = {
   userId: string

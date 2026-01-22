@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table"
 import { EditNoteModal } from "@/components/edit-note-modal"
 import { DeleteNoteModal } from "@/components/delete-note-modal"
-import type { Note } from "../types"
+import type { Note } from "@/types/matiere"
 
 type NotesTabProps = {
   userId: string

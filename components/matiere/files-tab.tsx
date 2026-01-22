@@ -13,7 +13,7 @@ import {
 import { EditFileModal } from "@/components/edit-file-modal"
 import { DeleteFileModal } from "@/components/delete-file-modal"
 import { Pencil } from "lucide-react"
-import type { File } from "../types"
+import type { File } from "@/types/matiere"
 
 type FilesTabProps = {
   userId: string

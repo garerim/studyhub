@@ -1,5 +1,5 @@
 import * as React from "react"
-import type { Note } from "../types"
+import type { Note } from "@/types/matiere"
 
 export function useNotes(userId: string | undefined, matiereId: string | undefined) {
   const [notes, setNotes] = React.useState<Note[]>([])

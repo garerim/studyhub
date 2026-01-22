@@ -25,6 +25,7 @@ model User {
   files         File[]
   quizes       Quiz[]
   quizAttempts  QuizAttempt[]
+  cours         Cours[]
 }
 
 model Account {
@@ -71,6 +72,7 @@ model Matiere {
   notes Note[]
   files File[]
   quizes Quiz[]
+  cours Cours[]
 }
 
 model Note {
@@ -99,6 +101,7 @@ model File {
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   matiere Matiere @relation(fields: [matiereId], references: [id], onDelete: Cascade)
+  coursDocuments CoursDocument[]
 
   @@index([userId, matiereId])
 }
@@ -160,4 +163,34 @@ model QuizAttempt {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([quizId, userId])
+model Cours {
+  id String @id @default(cuid())
+  userId String
+  matiereId String
+
+  name String
+  description String?
+  imageUrl String?
+  originalText String? // Texte de notes original
+  processedText String? // Texte traité par Mistral/Ollama (texte brut)
+  content String? // Contenu du cours en HTML (éditable avec l'éditeur riche)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matiere Matiere @relation(fields: [matiereId], references: [id], onDelete: Cascade)
+  documents CoursDocument[]
+}
+
+model CoursDocument {
+  id String @id @default(cuid())
+  coursId String
+  fileId String
+
+  cours Cours @relation(fields: [coursId], references: [id], onDelete: Cascade)
+  file File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@unique([coursId, fileId])
+  @@index([coursId])
 }

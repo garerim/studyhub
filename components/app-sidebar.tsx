@@ -14,8 +14,8 @@ import {
 } from "lucide-react"
 import { useSession } from "next-auth/react"
 
-import { AddMatiereModal } from "@/components/add-matiere-modal"
-import { DeleteMatiereModal } from "@/components/delete-matiere-modal"
+import { AddMatiereModal } from "@/components/modals/add-matiere-modal"
+import { DeleteMatiereModal } from "@/components/modals/delete-matiere-modal"
 import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
@@ -108,8 +108,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <Link href="/dashboard" className="flex items-center gap-2">
-                <GraduationCap className="size-5" />
-                <span className="text-base font-semibold">StudyHub</span>
+                <GraduationCap className="size-7 text-primary" />
+                <span className="text-primary font-semibold">StudyHub</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

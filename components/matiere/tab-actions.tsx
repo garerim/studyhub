@@ -1,8 +1,8 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { AddNoteModal } from "@/components/add-note-modal"
-import { AddFileModal } from "@/components/add-file-modal"
+import { AddNoteModal } from "@/components/modals/add-note-modal"
+import { AddFileModal } from "@/components/modals/add-file-modal"
 import { AddQuizModal } from "@/components/add-quiz-modal"
 
 type TabActionsProps = {

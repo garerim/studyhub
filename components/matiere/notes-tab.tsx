@@ -10,8 +10,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { EditNoteModal } from "@/components/edit-note-modal"
-import { DeleteNoteModal } from "@/components/delete-note-modal"
+import { EditNoteModal } from "@/components/modals/edit-note-modal"
+import { DeleteNoteModal } from "@/components/modals/delete-note-modal"
 import type { Note } from "@/types/matiere"
 
 type NotesTabProps = {

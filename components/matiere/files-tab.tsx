@@ -10,8 +10,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { EditFileModal } from "@/components/edit-file-modal"
-import { DeleteFileModal } from "@/components/delete-file-modal"
+import { EditFileModal } from "@/components/modals/edit-file-modal"
+import { DeleteFileModal } from "@/components/modals/delete-file-modal"
 import { Pencil } from "lucide-react"
 import type { File } from "@/types/matiere"
 

@@ -120,7 +120,7 @@ export function EditCoursModal({
           | null
         throw new Error(
           payload?.error ??
-            "Impossible de traiter le texte. Vérifiez que Ollama est démarré."
+            "Impossible de traiter le texte. Vérifiez la configuration Mistral."
         )
       }
 

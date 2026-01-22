@@ -113,7 +113,7 @@ export function AddCoursModal({
 
       const cours = await response.json()
 
-      // Si on a du texte original ou une image, traiter avec Ollama/Mistral
+      // Si on a du texte original ou une image, traiter avec Mistral
       if (originalText.trim() || imageUrl) {
         setIsProcessing(true)
         try {
@@ -123,12 +123,12 @@ export function AddCoursModal({
 
           if (!processResponse.ok) {
             console.warn(
-              "Le cours a été créé mais le traitement avec Ollama a échoué."
+              "Le cours a été créé mais le traitement avec Mistral a échoué."
             )
           }
         } catch (processError) {
           console.warn(
-            "Le cours a été créé mais le traitement avec Ollama a échoué:",
+            "Le cours a été créé mais le traitement avec Mistral a échoué:",
             processError
           )
         } finally {

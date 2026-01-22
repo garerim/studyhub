@@ -53,10 +53,20 @@ export async function POST(
       )
     }
 
-    // Appeler Ollama/Mistral pour traiter le texte et/ou l'image
-    // Par défaut, Ollama tourne sur http://localhost:11434
-    const ollamaUrl = process.env.OLLAMA_URL || "http://localhost:11434"
-    const model = process.env.OLLAMA_MODEL || "mistral"
+    // Appeler Mistral pour traiter le texte et/ou l'image
+    const apiKey = process.env.MISTRAL_API_KEY
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: "Clé Mistral manquante (MISTRAL_API_KEY)." },
+        { status: 500 }
+      )
+    }
+
+    const model = cours.imageUrl
+      ? process.env.MISTRAL_VISION_MODEL ||
+        process.env.MISTRAL_MODEL ||
+        "pixtral-12b-2409"
+      : process.env.MISTRAL_MODEL || "mistral-large-latest"
 
     // Construire le prompt selon ce qui est disponible
     let prompt = `Tu es un assistant pédagogique. Transforme les informations suivantes en un cours structuré, clair et détaillé. Organise les informations de manière logique, ajoute des explications si nécessaire, et formate le texte de manière professionnelle.
@@ -79,48 +89,65 @@ ${cours.originalText}
     prompt += `Cours structuré:`
 
     try {
-      // Si on a une image, utiliser l'API vision d'Ollama
-      const requestBody: any = {
-        model,
-        prompt,
-        stream: false,
-      }
+      const messageParts: Array<
+        { type: "text"; text: string } | { type: "image_url"; image_url: string }
+      > = [{ type: "text", text: prompt }]
 
-      // Si on a une image, l'ajouter au contexte
       if (cours.imageUrl) {
-        // Pour Ollama vision, on doit encoder l'image en base64
         try {
           const imageResponse = await fetch(cours.imageUrl)
           if (imageResponse.ok) {
             const imageBuffer = await imageResponse.arrayBuffer()
             const imageBase64 = Buffer.from(imageBuffer).toString("base64")
-            const imageMimeType = imageResponse.headers.get("content-type") || "image/jpeg"
-            
-            requestBody.images = [imageBase64]
+            const imageMimeType =
+              imageResponse.headers.get("content-type") || "image/jpeg"
+            messageParts.push({
+              type: "image_url",
+              image_url: `data:${imageMimeType};base64,${imageBase64}`,
+            })
           }
         } catch (imageError) {
           console.warn("Impossible de charger l'image pour le traitement:", imageError)
-          // Continuer sans l'image si on a du texte
           if (!cours.originalText) {
-            throw new Error("Impossible de charger l'image et aucun texte disponible.")
+            throw new Error(
+              "Impossible de charger l'image et aucun texte disponible."
+            )
           }
         }
       }
 
-      const response = await fetch(`${ollamaUrl}/api/generate`, {
+      const response = await fetch("https://api.mistral.ai/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
         },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({
+          model,
+          messages: [
+            {
+              role: "user",
+              content: messageParts,
+            },
+          ],
+          temperature: 0.2,
+        }),
       })
 
       if (!response.ok) {
-        throw new Error(`Ollama API error: ${response.statusText}`)
+        const errorBody = await response.text().catch(() => "")
+        throw new Error(
+          `Mistral API error: ${response.status} ${response.statusText} ${errorBody}`
+        )
       }
 
       const data = await response.json()
-      const processedText = data.response || ""
+      const messageContent = data?.choices?.[0]?.message?.content
+      const processedText = Array.isArray(messageContent)
+        ? messageContent.map((part: { text?: string }) => part.text || "").join("")
+        : typeof messageContent === "string"
+          ? messageContent
+          : ""
 
       // Convertir le markdown en HTML avec marked
       let content = ""
@@ -154,12 +181,12 @@ ${cours.originalText}
       })
 
       return NextResponse.json(updated)
-    } catch (ollamaError) {
-      console.error("Erreur lors de l'appel à Ollama:", ollamaError)
+    } catch (mistralError) {
+      console.error("Erreur lors de l'appel à Mistral:", mistralError)
       return NextResponse.json(
         {
           error:
-            "Impossible de traiter le texte. Vérifiez que Ollama est démarré et que le modèle est disponible.",
+            "Impossible de traiter le texte. Vérifiez la configuration Mistral et la clé API.",
         },
         { status: 500 }
       )

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -17,6 +18,8 @@ import { ToggleTheme } from "@/components/toggle-theme";
 
 export function WebsiteHeader() {
   const pathname = usePathname();
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === "authenticated" && !!session?.user;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -112,8 +115,10 @@ export function WebsiteHeader() {
         </div>
         <div className="flex items-center gap-4">
           <ToggleTheme />
-          <Button variant="ghost" asChild>
-            <Link href="/login">Connexion</Link>
+          <Button variant="ghost" asChild disabled={status === "loading"}>
+            <Link href={isAuthenticated ? "/dashboard" : "/login"}>
+              {isAuthenticated ? "Dashboard" : "Connexion"}
+            </Link>
           </Button>
           <Button asChild>
             <Link href="/register">Commencer</Link>

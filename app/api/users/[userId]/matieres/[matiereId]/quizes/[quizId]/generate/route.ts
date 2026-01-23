@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { generateQuizWithAI } from "@/lib/mistral";
+import { QuizService } from "@/services/quiz.service";
+import { QuotaExceededError } from "@/errors/quotaExceeded.error";
 
 export async function POST(
   request: Request,
@@ -65,10 +66,10 @@ export async function POST(
     //   difficulty || "medium",
     //   numberOfQuestions || 5
     // );
-    // Générer les questions avec Mistral AI
+    // Générer les questions avec l'IA (via QuizService)
     let generatedQuestions;
     try {
-      generatedQuestions = await generateQuizWithAI({
+      generatedQuestions = await QuizService.generateQuizWithAI(userId, {
         topic: topic || quiz.name,
         difficulty: (difficulty as "easy" | "medium" | "hard") || "medium",
         numberOfQuestions: numberOfQuestions || 5,
@@ -77,6 +78,21 @@ export async function POST(
       });
     } catch (aiError) {
       console.error("Error generating quiz with AI:", aiError);
+      
+      // Gérer l'erreur de quota dépassé
+      if (aiError instanceof QuotaExceededError) {
+        return NextResponse.json(
+          {
+            error: aiError.message,
+            code: aiError.code,
+            plan: aiError.plan,
+            limit: aiError.limit,
+            currentUsage: aiError.currentUsage,
+          },
+          { status: aiError.statusCode }
+        );
+      }
+
       return NextResponse.json(
         {
           error:

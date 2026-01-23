@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server"
 import { marked } from "marked"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/auth"
 
 import { prisma } from "@/lib/prisma"
+import { CourseService } from "@/services/course.service"
+import { QuotaExceededError } from "@/errors/quotaExceeded.error"
 
 export const runtime = "nodejs"
 
@@ -9,6 +13,15 @@ export async function POST(
   request: Request,
   { params }: { params?: { coursId?: string } }
 ) {
+  const session = await getServerSession(authOptions)
+  if (!session?.user?.id) {
+    return NextResponse.json(
+      { error: "Non authentifié" },
+      { status: 401 }
+    )
+  }
+
+  const userId = session.user.id
   const resolvedParams = params ? await params : undefined
   const coursIdFromParams = resolvedParams?.coursId
   const { pathname } = new URL(request.url)
@@ -27,11 +40,12 @@ export async function POST(
   }
 
   try {
-    // Récupérer le cours
+    // Récupérer le cours et vérifier la propriété
     const cours = await prisma.cours.findUnique({
       where: { id: coursId },
       select: {
         id: true,
+        userId: true,
         name: true,
         originalText: true,
         processedText: true,
@@ -46,6 +60,13 @@ export async function POST(
       )
     }
 
+    if (cours.userId !== userId) {
+      return NextResponse.json(
+        { error: "Non autorisé." },
+        { status: 403 }
+      )
+    }
+
     if (!cours.originalText && !cours.imageUrl) {
       return NextResponse.json(
         { error: "Aucun texte ou image à traiter." },
@@ -53,101 +74,20 @@ export async function POST(
       )
     }
 
-    // Appeler Mistral pour traiter le texte et/ou l'image
-    const apiKey = process.env.MISTRAL_API_KEY
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: "Clé Mistral manquante (MISTRAL_API_KEY)." },
-        { status: 500 }
-      )
-    }
-
-    const model = cours.imageUrl
-      ? process.env.MISTRAL_VISION_MODEL ||
-        process.env.MISTRAL_MODEL ||
-        "pixtral-12b-2409"
-      : process.env.MISTRAL_MODEL || "mistral-large-latest"
-
-    // Construire le prompt selon ce qui est disponible
-    let prompt = `Tu es un assistant pédagogique. Transforme les informations suivantes en un cours structuré, clair et détaillé. Organise les informations de manière logique, ajoute des explications si nécessaire, et formate le texte de manière professionnelle.
-
-`
-
-    if (cours.originalText) {
-      prompt += `Notes originales (texte):
-${cours.originalText}
-
-`
-    }
-
-    if (cours.imageUrl) {
-      prompt += `Une image de notes est également fournie. Analyse-la et intègre son contenu dans le cours structuré.
-
-`
-    }
-
-    prompt += `Cours structuré:`
-
+    // Traiter le cours avec l'IA (via CourseService)
+    let processedText: string;
     try {
-      const messageParts: Array<
-        { type: "text"; text: string } | { type: "image_url"; image_url: string }
-      > = [{ type: "text", text: prompt }]
+      const model = cours.imageUrl
+        ? process.env.MISTRAL_VISION_MODEL ||
+          process.env.MISTRAL_MODEL ||
+          "pixtral-12b-2409"
+        : process.env.MISTRAL_MODEL || "mistral-large-latest";
 
-      if (cours.imageUrl) {
-        try {
-          const imageResponse = await fetch(cours.imageUrl)
-          if (imageResponse.ok) {
-            const imageBuffer = await imageResponse.arrayBuffer()
-            const imageBase64 = Buffer.from(imageBuffer).toString("base64")
-            const imageMimeType =
-              imageResponse.headers.get("content-type") || "image/jpeg"
-            messageParts.push({
-              type: "image_url",
-              image_url: `data:${imageMimeType};base64,${imageBase64}`,
-            })
-          }
-        } catch (imageError) {
-          console.warn("Impossible de charger l'image pour le traitement:", imageError)
-          if (!cours.originalText) {
-            throw new Error(
-              "Impossible de charger l'image et aucun texte disponible."
-            )
-          }
-        }
-      }
-
-      const response = await fetch("https://api.mistral.ai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            {
-              role: "user",
-              content: messageParts,
-            },
-          ],
-          temperature: 0.2,
-        }),
-      })
-
-      if (!response.ok) {
-        const errorBody = await response.text().catch(() => "")
-        throw new Error(
-          `Mistral API error: ${response.status} ${response.statusText} ${errorBody}`
-        )
-      }
-
-      const data = await response.json()
-      const messageContent = data?.choices?.[0]?.message?.content
-      const processedText = Array.isArray(messageContent)
-        ? messageContent.map((part: { text?: string }) => part.text || "").join("")
-        : typeof messageContent === "string"
-          ? messageContent
-          : ""
+      processedText = await CourseService.processCourseWithAI(userId, {
+        originalText: cours.originalText,
+        imageUrl: cours.imageUrl,
+        model,
+      });
 
       // Convertir le markdown en HTML avec marked
       let content = ""
@@ -181,12 +121,29 @@ ${cours.originalText}
       })
 
       return NextResponse.json(updated)
-    } catch (mistralError) {
-      console.error("Erreur lors de l'appel à Mistral:", mistralError)
+    } catch (aiError) {
+      console.error("Erreur lors du traitement avec l'IA:", aiError)
+      
+      // Gérer l'erreur de quota dépassé
+      if (aiError instanceof QuotaExceededError) {
+        return NextResponse.json(
+          {
+            error: aiError.message,
+            code: aiError.code,
+            plan: aiError.plan,
+            limit: aiError.limit,
+            currentUsage: aiError.currentUsage,
+          },
+          { status: aiError.statusCode }
+        );
+      }
+
       return NextResponse.json(
         {
           error:
-            "Impossible de traiter le texte. Vérifiez la configuration Mistral et la clé API.",
+            aiError instanceof Error
+              ? aiError.message
+              : "Impossible de traiter le texte. Vérifiez la configuration Mistral et la clé API.",
         },
         { status: 500 }
       )

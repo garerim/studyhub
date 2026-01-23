@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
-import { AIQuotaService } from "@/services/aiQuota.service";
+import { ChatService } from "@/services/chat.service";
 import { QuotaExceededError } from "@/errors/quotaExceeded.error";
 
 /**
@@ -21,9 +21,6 @@ export async function POST(request: Request) {
 
     const userId = session.user.id;
 
-    // Vérifier et incrémenter le quota (logique métier dans le service)
-    await AIQuotaService.checkAndIncrementDailyUsage(userId);
-
     // Récupérer le body
     const body = await request.json().catch(() => ({}));
     const { message } = body;
@@ -35,10 +32,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // TODO: Appeler l'API Mistral ici
-    // Pour l'instant, on retourne une réponse mock
+    // Générer la réponse avec l'IA (via ChatService)
+    const content = await ChatService.generateChatResponse(userId, message);
+
     const response = {
-      content: `Réponse IA pour: ${message}`,
+      content,
       timestamp: new Date().toISOString(),
     };
 

@@ -5,6 +5,7 @@ import { getAuthSession } from "@/auth";
 import { AuthProvider } from "@/components/provider/auth-provider";
 import { ThemeProvider } from "@/components/provider/theme-provider";
 import { CookieBanner } from "@/components/cookie-banner";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,6 +43,7 @@ export default async function RootLayout({
           <AuthProvider session={session}>
             {children}
             <CookieBanner />
+            <Toaster />
           </AuthProvider>
         </ThemeProvider>
       </body>

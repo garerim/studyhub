@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { UploadButton } from "@/lib/uploadthing"
+import { toastFromNotification, handleAPIError } from "@/lib/toast"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -116,8 +117,17 @@ export function EditCoursModal({
 
       if (!response.ok) {
         const payload = (await response.json().catch(() => null)) as
-          | { error?: string }
+          | { error?: string; code?: string; notification?: { type: string; title: string; message: string } }
           | null
+        
+        // Gérer les erreurs de quota
+        if (payload?.code === "QUOTA_EXCEEDED") {
+          handleAPIError({
+            message: payload.error || "Quota dépassé",
+            code: payload.code,
+          } as unknown as Error);
+        }
+        
         throw new Error(
           payload?.error ??
             "Impossible de traiter le texte. Vérifiez la configuration Mistral."
@@ -126,10 +136,21 @@ export function EditCoursModal({
 
       const data = await response.json()
       setProcessedText(data.processedText || "")
+      
+      // Afficher le toast si une notification a été créée
+      if (data.notification) {
+        toastFromNotification(
+          data.notification.type,
+          data.notification.title,
+          data.notification.message
+        );
+      }
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Une erreur est survenue."
-      )
+      if (!handleAPIError(err)) {
+        setError(
+          err instanceof Error ? err.message : "Une erreur est survenue."
+        )
+      }
     } finally {
       setIsProcessing(false)
     }

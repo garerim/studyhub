@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Button } from "@/components/ui/button";
+import { toastFromNotification, handleAPIError } from "@/lib/toast";
 import {
   Dialog,
   DialogContent,
@@ -185,13 +186,35 @@ export function EditQuizModal({
         }
       );
       if (!response.ok) {
-        throw new Error("Failed to generate quiz");
+        const errorData = await response.json().catch(() => ({}));
+        if (errorData.code === "QUOTA_EXCEEDED") {
+          handleAPIError({
+            message: errorData.error,
+            code: errorData.code,
+            plan: errorData.plan,
+            limit: errorData.limit,
+            currentUsage: errorData.currentUsage,
+          } as unknown as Error);
+        }
+        throw new Error(errorData.error || "Failed to generate quiz");
       }
       const generatedQuiz = await response.json();
       setQuestions(generatedQuiz.questions);
+      
+      // Afficher le toast si une notification a été créée
+      if (generatedQuiz.notification) {
+        toastFromNotification(
+          generatedQuiz.notification.type,
+          generatedQuiz.notification.title,
+          generatedQuiz.notification.message
+        );
+      }
+      
       onUpdated?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur lors de la génération");
+      if (!handleAPIError(err)) {
+        setError(err instanceof Error ? err.message : "Erreur lors de la génération");
+      }
     } finally {
       setIsGenerating(false);
     }

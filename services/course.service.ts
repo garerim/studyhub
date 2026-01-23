@@ -3,6 +3,7 @@
  * Utilise AIService pour les appels IA
  */
 import { AIService } from "./ai/ai.service";
+import { NotificationService } from "./notification/notification.service";
 
 type ProcessCourseOptions = {
   originalText?: string | null;
@@ -99,6 +100,15 @@ ${originalText}
       : typeof aiResponse.content === "string"
         ? aiResponse.content
         : "";
+
+    await NotificationService.notify({
+      userId,
+      type: "COURSE_PROCESSED",
+      title: "Cours traité avec succès",
+      message: `Votre cours a été traité avec succès.`,
+    }).catch((err) => {
+      console.error("Error sending course processed notification:", err);
+    });
 
     return processedText;
   }

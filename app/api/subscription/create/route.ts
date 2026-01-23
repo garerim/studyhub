@@ -4,6 +4,7 @@ import { z } from "zod";
 import { authOptions } from "@/auth";
 import { SubscriptionService } from "@/services/subscription.service";
 import { SubscriptionConflictError } from "@/errors/subscription.error";
+import { NotificationService } from "@/services/notification/notification.service";
 
 const createSubscriptionSchema = z.object({
   plan: z.enum(["STUDENT", "PREMIUM"]),
@@ -46,7 +47,19 @@ export async function POST(request: Request) {
       providerSubId
     );
 
-    return NextResponse.json(subscription, { status: 201 });
+    // Récupérer la dernière notification créée pour l'afficher dans le toast
+    const lastNotification = await NotificationService.getUserNotifications(userId, {
+      limit: 1,
+      unreadOnly: true,
+    });
+
+    return NextResponse.json(
+      {
+        ...subscription,
+        notification: lastNotification[0] || null,
+      },
+      { status: 201 }
+    );
   } catch (error) {
     if (error instanceof SubscriptionConflictError) {
       return NextResponse.json(

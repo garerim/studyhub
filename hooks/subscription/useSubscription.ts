@@ -8,6 +8,7 @@ import {
   type SubscriptionResponse,
   type CreateSubscriptionRequest,
 } from "@/lib/api/subscription.api";
+import { toastFromNotification } from "@/lib/toast";
 
 export function useSubscription() {
   const [subscription, setSubscription] = useState<SubscriptionResponse | null>(null);
@@ -35,8 +36,17 @@ export function useSubscription() {
     try {
       setIsLoading(true);
       setError(null);
-      await createSubscription(data);
+      const response = await createSubscription(data);
       await fetchSubscription();
+      
+      // Afficher le toast si une notification a été créée
+      if (response.notification) {
+        toastFromNotification(
+          response.notification.type,
+          response.notification.title,
+          response.notification.message
+        );
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erreur inconnue";
       setError(message);
@@ -50,8 +60,17 @@ export function useSubscription() {
     try {
       setIsLoading(true);
       setError(null);
-      await cancelSubscription();
+      const response = await cancelSubscription();
       await fetchSubscription();
+      
+      // Afficher le toast si une notification a été créée
+      if (response.notification) {
+        toastFromNotification(
+          response.notification.type,
+          response.notification.title,
+          response.notification.message
+        );
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erreur inconnue";
       setError(message);

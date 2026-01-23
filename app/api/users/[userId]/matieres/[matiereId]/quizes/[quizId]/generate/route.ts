@@ -4,6 +4,7 @@ import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { QuizService } from "@/services/quiz.service";
 import { QuotaExceededError } from "@/errors/quotaExceeded.error";
+import { NotificationService } from "@/services/notification/notification.service";
 
 export async function POST(
   request: Request,
@@ -157,7 +158,16 @@ export async function POST(
       },
     });
 
-    return NextResponse.json(updatedQuiz);
+    // Récupérer la dernière notification créée pour l'afficher dans le toast
+    const lastNotification = await NotificationService.getUserNotifications(userId, {
+      limit: 1,
+      unreadOnly: true,
+    });
+
+    return NextResponse.json({
+      ...updatedQuiz,
+      notification: lastNotification[0] || null,
+    });
   } catch (error) {
     console.error("Error generating quiz:", error);
     return NextResponse.json(

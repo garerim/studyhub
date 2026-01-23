@@ -28,6 +28,12 @@ export interface CreateSubscriptionResponse {
   providerSubId: string;
   createdAt: string;
   updatedAt: string;
+  notification?: {
+    id: string;
+    type: string;
+    title: string;
+    message: string;
+  } | null;
 }
 
 /**

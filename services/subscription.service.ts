@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { SubscriptionPlan, SubscriptionStatus } from "@prisma/client";
 import { SubscriptionConflictError } from "@/errors/subscription.error";
+import { NotificationService } from "./notification/notification.service";
 
 /**
  * Service pour gérer les abonnements utilisateurs
@@ -97,6 +98,17 @@ export class SubscriptionService {
       },
     });
 
+    // Notifier l'utilisateur
+    await NotificationService.notify({
+      userId,
+      type: "SUBSCRIPTION_CREATED",
+      title: "Abonnement activé",
+      message: `Votre abonnement ${plan} a été activé avec succès.`,
+    }).catch((err) => {
+      // Ne pas faire échouer la création d'abonnement si la notification échoue
+      console.error("Error sending notification:", err);
+    });
+
     return subscription;
   }
 
@@ -119,6 +131,17 @@ export class SubscriptionService {
         status: "CANCELED",
         canceledAt: new Date(),
       },
+    });
+
+    // Notifier l'utilisateur
+    await NotificationService.notify({
+      userId,
+      type: "SUBSCRIPTION_CANCELED",
+      title: "Abonnement annulé",
+      message: `Votre abonnement ${canceled.plan} a été annulé. Vous êtes maintenant sur le plan gratuit.`,
+    }).catch((err) => {
+      // Ne pas faire échouer l'annulation si la notification échoue
+      console.error("Error sending notification:", err);
     });
 
     return canceled;

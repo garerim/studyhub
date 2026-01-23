@@ -6,6 +6,7 @@ import { authOptions } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { CourseService } from "@/services/course.service"
 import { QuotaExceededError } from "@/errors/quotaExceeded.error"
+import { NotificationService } from "@/services/notification/notification.service"
 
 export const runtime = "nodejs"
 
@@ -118,9 +119,18 @@ export async function POST(
           processedText: true,
           content: true,
         },
-      })
+      });
 
-      return NextResponse.json(updated)
+      // Récupérer la dernière notification créée pour l'afficher dans le toast
+      const lastNotification = await NotificationService.getUserNotifications(userId, {
+        limit: 1,
+        unreadOnly: true,
+      });
+
+      return NextResponse.json({
+        ...updated,
+        notification: lastNotification[0] || null,
+      });
     } catch (aiError) {
       console.error("Erreur lors du traitement avec l'IA:", aiError)
       

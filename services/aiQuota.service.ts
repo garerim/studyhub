@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { SubscriptionService } from "./subscription.service";
 import { PlanLimitService } from "./planLimit.service";
 import { QuotaExceededError } from "@/errors/quotaExceeded.error";
+import { NotificationService } from "./notification/notification.service";
 
 /**
  * Service central pour gérer les quotas d'appels IA
@@ -51,8 +52,31 @@ export class AIQuotaService {
 
     const currentCount = currentUsage?.count ?? 0;
 
+    // Avertir si quota proche d'être atteint (80%)
+    const warningThreshold = Math.floor(dailyLimit * 0.8);
+    if (currentCount === warningThreshold) {
+      await NotificationService.notify({
+        userId,
+        type: "QUOTA_WARNING",
+        title: "Quota IA presque atteint",
+        message: `Vous avez utilisé ${currentCount}/${dailyLimit} appels IA aujourd'hui. Il vous reste ${dailyLimit - currentCount} appels.`,
+      }).catch((err) => {
+        console.error("Error sending quota warning notification:", err);
+      });
+    }
+
     // Bloquer si quota déjà dépassé (avant incrémentation)
     if (currentCount >= dailyLimit) {
+      // Notifier avant de lever l'erreur
+      await NotificationService.notify({
+        userId,
+        type: "QUOTA_EXCEEDED",
+        title: "Quota IA dépassé",
+        message: `Vous avez atteint votre limite de ${dailyLimit} appels IA aujourd'hui (plan ${plan}). Passez à un plan supérieur pour continuer.`,
+      }).catch((err) => {
+        console.error("Error sending quota exceeded notification:", err);
+      });
+
       throw new QuotaExceededError(plan, dailyLimit, currentCount);
     }
 

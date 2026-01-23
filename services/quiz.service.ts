@@ -3,6 +3,7 @@
  * Utilise AIService pour les appels IA
  */
 import { AIService } from "./ai/ai.service";
+import { NotificationService } from "./notification/notification.service";
 import type { AITaskType } from "./ai/ai.types";
 
 type Question = {
@@ -134,6 +135,16 @@ Types: "multiple-choice" (4 réponses) ou "true-false" (Vrai/Faux)`;
     if (validatedQuestions.length === 0) {
       throw new Error("No valid questions generated");
     }
+
+    // Notifier l'utilisateur du succès
+    await NotificationService.notify({
+      userId,
+      type: "QUIZ_GENERATED",
+      title: "Quiz généré avec succès",
+      message: `Votre quiz "${topic}" a été généré avec ${validatedQuestions.length} question(s).`,
+    }).catch((err) => {
+      console.error("Error sending quiz notification:", err);
+    });
 
     return validatedQuestions;
   }

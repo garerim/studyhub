@@ -21,6 +21,7 @@ model User {
   subscriptions Subscription[]
   payments      Payment[]
   aiUsageDaily  AIUsageDaily[]
+  notifications Notification[]
   accounts      Account[]
   sessions      Session[]
   matieres      Matiere[]
@@ -270,4 +271,21 @@ model AIUsageDaily {
   @@unique([userId, date])
   @@index([userId, date])
   @@map("AIUsageDaily")
+}
+
+// Notifications utilisateur
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // "SUBSCRIPTION", "QUOTA", "AI_SUCCESS", "AI_ERROR", "QUIZ", "COURSE", etc.
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+  @@map("Notification")
 }

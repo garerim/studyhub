@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { UploadButton } from "@/lib/uploadthing"
+import { toastFromNotification, handleAPIError } from "@/lib/toast"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -122,9 +123,28 @@ export function AddCoursModal({
           })
 
           if (!processResponse.ok) {
-            console.warn(
-              "Le cours a été créé mais le traitement avec Mistral a échoué."
-            )
+            const errorData = await processResponse.json().catch(() => ({}));
+            // Gérer les erreurs de quota
+            if (errorData.code === "QUOTA_EXCEEDED") {
+              handleAPIError({
+                message: errorData.error || "Quota dépassé",
+                code: errorData.code,
+              } as unknown as Error);
+            } else {
+              console.warn(
+                "Le cours a été créé mais le traitement avec Mistral a échoué."
+              );
+            }
+          } else {
+            const processData = await processResponse.json();
+            // Afficher le toast si une notification a été créée
+            if (processData.notification) {
+              toastFromNotification(
+                processData.notification.type,
+                processData.notification.title,
+                processData.notification.message
+              );
+            }
           }
         } catch (processError) {
           console.warn(

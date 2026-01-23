@@ -10,6 +10,7 @@ import {
   NotebookPen,
   PlusCircle,
   Trash2,
+  Bell,
   type LucideIcon,
   CreditCard,
 } from "lucide-react"
@@ -24,7 +25,6 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarRail,
   SidebarMenu,
   SidebarMenuAction,
   SidebarMenuButton,
@@ -52,6 +52,7 @@ const platformItems: SidebarItem[] = [
   // { title: "Mes cours", url: "/cours", icon: NotebookPen },
   // { title: "Mes fichiers", url: "/fichiers", icon: Folder },
   { title: "Calendrier", url: "/calendrier", icon: Calendar },
+  { title: "Notifications", url: "/notifications", icon: Bell },
 ]
 
 const subjectItems: SidebarItem[] = [

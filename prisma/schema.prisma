@@ -8,22 +8,25 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String         @id @default(cuid())
   username      String?
   firstName     String?
   lastName      String?
-  email         String?   @unique
+  email         String?        @unique
   emailVerified DateTime?
   image         String?
   password      String
   gender        String?
   birthDate     DateTime?
+  subscriptions Subscription[]
+  payments      Payment[]
+  aiUsageDaily  AIUsageDaily[]
   accounts      Account[]
   sessions      Session[]
   matieres      Matiere[]
   notes         Note[]
   files         File[]
-  quizes       Quiz[]
+  quizes        Quiz[]
   quizAttempts  QuizAttempt[]
   cours         Cours[]
 }
@@ -64,28 +67,28 @@ model VerificationToken {
 }
 
 model Matiere {
-  id String @id @default(cuid())
+  id   String @id @default(cuid())
   name String
   type String
 
-  users User[]
-  notes Note[]
-  files File[]
+  users  User[]
+  notes  Note[]
+  files  File[]
   quizes Quiz[]
-  cours Cours[]
+  cours  Cours[]
 }
 
 model Note {
-  id String @id @default(cuid())
-  userId String
-  matiereId String
-  note Float
-  comment String?
-  coefficient Int @default(1)
+  id          String  @id @default(cuid())
+  userId      String
+  matiereId   String
+  note        Float
+  comment     String?
+  coefficient Int     @default(1)
 
   date DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   matiere Matiere @relation(fields: [matiereId], references: [id], onDelete: Cascade)
 }
 
@@ -99,53 +102,53 @@ model File {
   mimeType  String
   createdAt DateTime @default(now())
 
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  matiere Matiere @relation(fields: [matiereId], references: [id], onDelete: Cascade)
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matiere        Matiere         @relation(fields: [matiereId], references: [id], onDelete: Cascade)
   coursDocuments CoursDocument[]
 
   @@index([userId, matiereId])
 }
 
 model Quiz {
-  id          String   @id @default(cuid())
-  userId      String
-  matiereId   String
-  name        String
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  isAIGenerated Boolean @default(false)
+  id            String   @id @default(cuid())
+  userId        String
+  matiereId     String
+  name          String
+  description   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  isAIGenerated Boolean  @default(false)
 
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  matiere     Matiere      @relation(fields: [matiereId], references: [id], onDelete: Cascade)
-  questions   Question[]
-  attempts    QuizAttempt[]
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matiere   Matiere       @relation(fields: [matiereId], references: [id], onDelete: Cascade)
+  questions Question[]
+  attempts  QuizAttempt[]
 
   @@index([userId, matiereId])
 }
 
 model Question {
-  id          String   @id @default(cuid())
-  quizId      String
-  question    String
-  type        String   @default("multiple-choice") // multiple-choice, true-false, short-answer
-  order       Int
-  points      Int      @default(1)
+  id       String @id @default(cuid())
+  quizId   String
+  question String
+  type     String @default("multiple-choice") // multiple-choice, true-false, short-answer
+  order    Int
+  points   Int    @default(1)
 
-  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  answers     Answer[]
+  quiz    Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  answers Answer[]
 
   @@index([quizId])
 }
 
 model Answer {
-  id          String   @id @default(cuid())
-  questionId  String
-  text        String
-  isCorrect   Boolean  @default(false)
-  order       Int
+  id         String  @id @default(cuid())
+  questionId String
+  text       String
+  isCorrect  Boolean @default(false)
+  order      Int
 
-  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@index([questionId])
 }
@@ -156,43 +159,115 @@ model QuizAttempt {
   userId      String
   score       Float
   totalPoints Int
-  answers     String   // JSON string of user answers
+  answers     String // JSON string of user answers
   completedAt DateTime @default(now())
 
-  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([quizId, userId])
 }
 
 model Cours {
-  id String @id @default(cuid())
-  userId String
+  id        String @id @default(cuid())
+  userId    String
   matiereId String
 
-  name String
-  description String?
-  imageUrl String?
-  originalText String? // Texte de notes original
+  name          String
+  description   String?
+  imageUrl      String?
+  originalText  String? // Texte de notes original
   processedText String? // Texte traité par Mistral/Ollama (texte brut)
-  content String? // Contenu du cours en HTML (éditable avec l'éditeur riche)
+  content       String? // Contenu du cours en HTML (éditable avec l'éditeur riche)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  matiere Matiere @relation(fields: [matiereId], references: [id], onDelete: Cascade)
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matiere   Matiere         @relation(fields: [matiereId], references: [id], onDelete: Cascade)
   documents CoursDocument[]
 }
 
 model CoursDocument {
-  id String @id @default(cuid())
+  id      String @id @default(cuid())
   coursId String
-  fileId String
+  fileId  String
 
   cours Cours @relation(fields: [coursId], references: [id], onDelete: Cascade)
-  file File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  file  File  @relation(fields: [fileId], references: [id], onDelete: Cascade)
 
   @@unique([coursId, fileId])
   @@index([coursId])
+}
+
+enum SubscriptionPlan {
+  FREE
+  STUDENT
+  PREMIUM
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  EXPIRED
+  PAST_DUE
+}
+
+model Subscription {
+  id         String             @id @default(cuid())
+  userId     String
+  plan       SubscriptionPlan
+  status     SubscriptionStatus
+  priceCents Int
+  currency   String             @default("EUR")
+
+  startedAt  DateTime  @default(now())
+  endsAt     DateTime?
+  canceledAt DateTime?
+
+  provider      String // "stripe", "lemonsqueezy", etc.
+  providerSubId String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments Payment[]
+}
+
+//model pour stripe
+model Payment {
+  id             String   @id @default(cuid())
+  userId         String
+  subscriptionId String
+  amountCents    Int
+  currency       String
+  status         String // succeeded, failed
+  providerPayId  String
+  createdAt      DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+}
+
+// Limites par plan d'abonnement
+model PlanLimit {
+  plan    SubscriptionPlan @id
+  dailyAI Int?              // null = illimité
+
+  @@map("PlanLimit")
+}
+
+// Compteur d'utilisation IA par utilisateur et par jour
+model AIUsageDaily {
+  id     String   @id @default(cuid())
+  userId String
+  date   DateTime // Date normalisée à 00:00:00
+  count  Int      @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId, date])
+  @@map("AIUsageDaily")
 }

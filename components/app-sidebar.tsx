@@ -3,16 +3,13 @@
 import * as React from "react"
 import {
   Calendar,
-  Folder,
   FolderOpen,
   GraduationCap,
   Home,
-  NotebookPen,
   PlusCircle,
   Trash2,
   Bell,
   type LucideIcon,
-  CreditCard,
 } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { usePathname } from "next/navigation"
@@ -219,12 +216,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <SidebarMenuButton asChild isActive={pathname.startsWith("/account/subscription")}>
-          <Link href="/account/subscription">
-            <CreditCard />
-            <span>Abonnement</span>
-          </Link>
-        </SidebarMenuButton>
         <NavUser />
       </SidebarFooter>
     </Sidebar>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { getAuthSession } from "@/auth";
 import { AuthProvider } from "@/components/provider/auth-provider";
 import { ThemeProvider } from "@/components/provider/theme-provider";
 import { CookieBanner } from "@/components/cookie-banner";
@@ -20,11 +21,13 @@ export const metadata: Metadata = {
   description: "StudyHub is a platform for learning and growing",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getAuthSession();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
@@ -36,7 +39,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>
+          <AuthProvider session={session}>
             {children}
             <CookieBanner />
           </AuthProvider>

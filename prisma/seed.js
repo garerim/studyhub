@@ -5,6 +5,7 @@ const path = require("node:path");
 const prisma = new PrismaClient();
 
 async function main() {
+  // Seed des matières
   const filePath = path.join(process.cwd(), "matieres.json");
   const raw = await fs.readFile(filePath, "utf-8");
   const data = JSON.parse(raw);
@@ -27,6 +28,24 @@ async function main() {
   if (toCreate.length > 0) {
     await prisma.matiere.createMany({ data: toCreate });
   }
+
+  // Seed des limites par plan d'abonnement
+  // RÈGLE MÉTIER : FREE → 5, STUDENT → 50, PREMIUM → null (illimité)
+  const planLimits = [
+    { plan: "FREE", dailyAI: 5 },
+    { plan: "STUDENT", dailyAI: 50 },
+    { plan: "PREMIUM", dailyAI: null },
+  ];
+
+  for (const limit of planLimits) {
+    await prisma.planLimit.upsert({
+      where: { plan: limit.plan },
+      update: { dailyAI: limit.dailyAI },
+      create: limit,
+    });
+  }
+
+  console.log("✅ Plan limits seeded successfully");
 }
 
 main()

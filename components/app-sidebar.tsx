@@ -10,7 +10,9 @@ import {
   NotebookPen,
   PlusCircle,
   Trash2,
+  Bell,
   type LucideIcon,
+  CreditCard,
 } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { usePathname } from "next/navigation"
@@ -23,7 +25,6 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarRail,
   SidebarMenu,
   SidebarMenuAction,
   SidebarMenuButton,
@@ -51,6 +52,7 @@ const platformItems: SidebarItem[] = [
   // { title: "Mes cours", url: "/cours", icon: NotebookPen },
   // { title: "Mes fichiers", url: "/fichiers", icon: Folder },
   { title: "Calendrier", url: "/calendrier", icon: Calendar },
+  { title: "Notifications", url: "/notifications", icon: Bell },
 ]
 
 const subjectItems: SidebarItem[] = [
@@ -121,16 +123,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarGroup>
           <SidebarGroupLabel>Plateforme</SidebarGroupLabel>
           <SidebarMenu>
-            {platformItems.map((item) => (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton asChild>
-                  <Link href={item.url}>
-                    <item.icon />
-                    <span>{item.title}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
+            {platformItems.map((item) => {
+              const isActive = pathname === item.url || pathname.startsWith(`${item.url}/`);
+              return (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={isActive}>
+                    <Link href={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
           </SidebarMenu>
         </SidebarGroup>
         <SidebarGroup>
@@ -158,25 +163,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 pathname === matierePath || pathname.startsWith(`${matierePath}/`)
 
               return (
-              <SidebarMenuItem key={matiere.id}>
-                <SidebarMenuButton asChild isActive={isActiveMatiere}>
-                  <Link href={`/matiere/${matiere.id}`}>
-                    <FolderOpen />
-                    <span>{matiere.name}</span>
-                  </Link>
-                </SidebarMenuButton>
-                <DeleteMatiereModal
-                  userId={userId!}
-                  matiereId={matiere.id}
-                  matiereName={matiere.name}
-                  onDeleted={loadMatieres}
-                >
-                  <SidebarMenuAction showOnHover className="cursor-pointer">
-                    <Trash2 className="text-destructive" />
-                    <span className="sr-only">Supprimer la matière</span>
-                  </SidebarMenuAction>
-                </DeleteMatiereModal>
-              </SidebarMenuItem>
+                <SidebarMenuItem key={matiere.id}>
+                  <SidebarMenuButton asChild isActive={isActiveMatiere}>
+                    <Link href={`/matiere/${matiere.id}`}>
+                      <FolderOpen />
+                      <span>{matiere.name}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                  <DeleteMatiereModal
+                    userId={userId!}
+                    matiereId={matiere.id}
+                    matiereName={matiere.name}
+                    onDeleted={loadMatieres}
+                  >
+                    <SidebarMenuAction showOnHover className="cursor-pointer">
+                      <Trash2 className="text-destructive" />
+                      <span className="sr-only">Supprimer la matière</span>
+                    </SidebarMenuAction>
+                  </DeleteMatiereModal>
+                </SidebarMenuItem>
               )
             })}
             {subjectItems.map((item) => (
@@ -214,9 +219,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
+        <SidebarMenuButton asChild isActive={pathname.startsWith("/account/subscription")}>
+          <Link href="/account/subscription">
+            <CreditCard />
+            <span>Abonnement</span>
+          </Link>
+        </SidebarMenuButton>
         <NavUser />
       </SidebarFooter>
-      <SidebarRail />
     </Sidebar>
   )
 }

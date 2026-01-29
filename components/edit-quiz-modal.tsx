@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { toastFromNotification, handleAPIError } from "@/lib/toast";
+import { AiLoadingDialog } from "@/components/ai-loading-dialog";
 import {
   Dialog,
   DialogContent,
@@ -63,6 +64,7 @@ export function EditQuizModal({
   const [isGenerating, setIsGenerating] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [showAIGenerateDialog, setShowAIGenerateDialog] = React.useState(false);
+  const [showAiLoading, setShowAiLoading] = React.useState(false);
   const [aiDifficulty, setAiDifficulty] = React.useState<"easy" | "medium" | "hard">("medium");
   const [aiNumberOfQuestions, setAiNumberOfQuestions] = React.useState(5);
   const [aiCustomPrompt, setAiCustomPrompt] = React.useState("");
@@ -171,7 +173,11 @@ export function EditQuizModal({
     setIsGenerating(true);
     setError(null);
     setShowAIGenerateDialog(false);
+    // Ouvrir la dialog de chargement immédiatement
+    setShowAiLoading(true);
+    
     try {
+      // Lancer la génération en arrière-plan
       const response = await fetch(
         `/api/users/${userId}/matieres/${matiereId}/quizes/${quiz.id}/generate`,
         {
@@ -185,6 +191,7 @@ export function EditQuizModal({
           }),
         }
       );
+      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         if (errorData.code === "QUOTA_EXCEEDED") {
@@ -195,9 +202,17 @@ export function EditQuizModal({
             limit: errorData.limit,
             currentUsage: errorData.currentUsage,
           } as unknown as Error);
+        } else {
+          // Créer une notification d'erreur
+          toastFromNotification(
+            "AI_ERROR",
+            "Erreur de génération",
+            "Une erreur est survenue lors de la génération du quiz."
+          );
         }
         throw new Error(errorData.error || "Failed to generate quiz");
       }
+      
       const generatedQuiz = await response.json();
       setQuestions(generatedQuiz.questions);
       
@@ -208,15 +223,29 @@ export function EditQuizModal({
           generatedQuiz.notification.title,
           generatedQuiz.notification.message
         );
+      } else {
+        // Notification de succès par défaut
+        toastFromNotification(
+          "QUIZ_GENERATED",
+          "Quiz généré",
+          "Votre quiz est prêt"
+        );
       }
       
       onUpdated?.();
     } catch (err) {
       if (!handleAPIError(err)) {
         setError(err instanceof Error ? err.message : "Erreur lors de la génération");
+        // Créer une notification d'erreur
+        toastFromNotification(
+          "AI_ERROR",
+          "Erreur de génération",
+          "Une erreur est survenue lors de la génération du quiz."
+        );
       }
     } finally {
       setIsGenerating(false);
+      setShowAiLoading(false);
     }
   };
 
@@ -641,6 +670,16 @@ export function EditQuizModal({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Dialog de chargement IA */}
+      <AiLoadingDialog
+        open={showAiLoading}
+        onOpenChange={(open) => {
+          // Permettre à l'utilisateur de fermer la dialog sans annuler la génération
+          setShowAiLoading(open)
+        }}
+        animationPath="/AiPowered.lottie"
+      />
     </Dialog>
   );
 }

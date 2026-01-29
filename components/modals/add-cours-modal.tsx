@@ -3,6 +3,7 @@
 import * as React from "react"
 import { UploadButton } from "@/lib/uploadthing"
 import { toastFromNotification, handleAPIError } from "@/lib/toast"
+import { AiLoadingDialog } from "@/components/ai-loading-dialog"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -42,6 +43,7 @@ export function AddCoursModal({
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [isProcessing, setIsProcessing] = React.useState(false)
+  const [showAiLoading, setShowAiLoading] = React.useState(false)
 
   const resetForm = React.useCallback(() => {
     setName("")
@@ -117,43 +119,71 @@ export function AddCoursModal({
       // Si on a du texte original ou une image, traiter avec Mistral
       if (originalText.trim() || imageUrl) {
         setIsProcessing(true)
-        try {
-          const processResponse = await fetch(`/api/cours/${cours.id}/process`, {
-            method: "POST",
-          })
+        // Ouvrir la dialog de chargement immédiatement
+        setShowAiLoading(true)
+        
+        // Lancer le traitement en arrière-plan (sans await pour permettre la fermeture de la dialog)
+        const processPromise = fetch(`/api/cours/${cours.id}/process`, {
+          method: "POST",
+        })
 
-          if (!processResponse.ok) {
-            const errorData = await processResponse.json().catch(() => ({}));
-            // Gérer les erreurs de quota
-            if (errorData.code === "QUOTA_EXCEEDED") {
-              handleAPIError({
-                message: errorData.error || "Quota dépassé",
-                code: errorData.code,
-              } as unknown as Error);
+        // Gérer la réponse de manière asynchrone
+        processPromise
+          .then(async (processResponse) => {
+            if (!processResponse.ok) {
+              const errorData = await processResponse.json().catch(() => ({}));
+              // Gérer les erreurs de quota
+              if (errorData.code === "QUOTA_EXCEEDED") {
+                handleAPIError({
+                  message: errorData.error || "Quota dépassé",
+                  code: errorData.code,
+                } as unknown as Error);
+              } else {
+                // Créer une notification d'erreur
+                toastFromNotification(
+                  "AI_ERROR",
+                  "Erreur de génération",
+                  "Une erreur est survenue lors de la génération du cours."
+                );
+                console.warn(
+                  "Le cours a été créé mais le traitement avec Mistral a échoué."
+                );
+              }
             } else {
-              console.warn(
-                "Le cours a été créé mais le traitement avec Mistral a échoué."
-              );
+              const processData = await processResponse.json();
+              // Afficher le toast si une notification a été créée
+              if (processData.notification) {
+                toastFromNotification(
+                  processData.notification.type,
+                  processData.notification.title,
+                  processData.notification.message
+                );
+              } else {
+                // Notification de succès par défaut
+                toastFromNotification(
+                  "COURSE_PROCESSED",
+                  "Cours généré",
+                  "Votre cours est prêt"
+                );
+              }
             }
-          } else {
-            const processData = await processResponse.json();
-            // Afficher le toast si une notification a été créée
-            if (processData.notification) {
-              toastFromNotification(
-                processData.notification.type,
-                processData.notification.title,
-                processData.notification.message
-              );
-            }
-          }
-        } catch (processError) {
-          console.warn(
-            "Le cours a été créé mais le traitement avec Mistral a échoué:",
-            processError
-          )
-        } finally {
-          setIsProcessing(false)
-        }
+          })
+          .catch((processError) => {
+            console.warn(
+              "Le cours a été créé mais le traitement avec Mistral a échoué:",
+              processError
+            );
+            // Créer une notification d'erreur
+            toastFromNotification(
+              "AI_ERROR",
+              "Erreur de génération",
+              "Une erreur est survenue lors de la génération du cours."
+            );
+          })
+          .finally(() => {
+            setIsProcessing(false)
+            setShowAiLoading(false)
+          })
       }
 
       onAdded?.()
@@ -279,6 +309,16 @@ export function AddCoursModal({
           </DialogFooter>
         </form>
       </DialogContent>
+      
+      {/* Dialog de chargement IA */}
+      <AiLoadingDialog
+        open={showAiLoading}
+        onOpenChange={(open) => {
+          // Permettre à l'utilisateur de fermer la dialog sans annuler la génération
+          setShowAiLoading(open)
+        }}
+        animationPath="/ManAndRobot.lottie"
+      />
     </Dialog>
   )
 }
